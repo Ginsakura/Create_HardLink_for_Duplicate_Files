@@ -12,36 +12,36 @@ class File(object):
 		self.filePathName = ''
 		self.fileSize = ''
 		self.fileMD5 = ''
-		self.mem=0
-		if os.path.isfile('./FileData.db'):
-			self.mdb = sqlite3.connect(':memory:')
-			self.mcur = self.mdb.cursor()
-			self.mem=1
-		self.isDB()
+		self.mem=self.HasDB()
 		self.db = sqlite3.connect('./FileData.db')
 		self.cur = self.db.cursor()
 		self.cur.execute('PRAGMA synchronous = OFF')
 		if self.mem:
-			script = ''.join(self.db.iterdump())
-			self.mdb.executescript(script)
-			print('Load memory SQLite.')
+			self.mdb = sqlite3.connect(':memory:')
+			self.mcur = self.mdb.cursor()
+			print('Loading SQLite to memory ...')
+			self.db.backup(self.mdb)
+			print('Load SQLite to memory success.')
 
 
-	def isDB(self):
+	def HasDB(self):
 		db=sqlite3.connect('./FileData.db')
 		cur = db.cursor()
-		exist = cur.execute(f'select * from sqlite_master where type=\'table\' and name=\'FileList\'')
+		exist = cur.execute(f'select * from sqlite_master where type=\'table\' and name=\'{self.path}\'')
 		exist = exist.fetchone()
+		x=1
 		if not exist:
 			cur.execute(f'''
 				Create table 
-				FileList (
+				`{self.path}` (
 				FilePath text Primary Key,
 				FileSize int,
 				FileMD5 text)''')
 			# cur.execute(f'insert into BookList values(?,?,?,?,?)', (0, 'init', 'init', datetime.datetime.now(), 1))
 			db.commit()
+			x=0
 		db.close()
+		return x
 
 	def TraversePath(self):
 		for filepath,dirnames,filenames in os.walk(self.path):
@@ -60,13 +60,13 @@ class File(object):
 				except Exception as e:
 					print(f'Something is wrong: {e}')
 					print(f'Path:{self.filePathName}')
-					with open('./log','a',encoding='utf8') as log:
+					with open('./error.log','a',encoding='utf8') as log:
 						log.write(str(e)+'\n'+self.filePathName+'\n')
 
 
 	def SQLCheck(self):
 		if self.mem:
-			res = self.mcur.execute(f'select FileSize,FileMD5 from FileList where FilePath="{self.filePathName}"')
+			res = self.mcur.execute(f'select FileSize,FileMD5 from `{self.path}` where FilePath="{self.filePathName}"')
 			for ids in res:
 				if self.fileSize == ids[0]:
 					self.fileMD5=ids[1]
@@ -78,7 +78,7 @@ class File(object):
 			return 0
 
 	def SQLInsert(self):
-		self.cur.execute(f'insert into FileList values(?,?,?)', (self.filePathName, self.fileSize, self.fileMD5))
+		self.cur.execute(f'insert into `{self.path}` values(?,?,?)', (self.filePathName, self.fileSize, self.fileMD5))
 		self.db.commit()
 
 	def File2md5(self):
