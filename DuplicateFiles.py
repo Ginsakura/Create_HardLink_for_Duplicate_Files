@@ -67,7 +67,7 @@ class FileSearch(object):
 					print(f'Something is wrong: {e}')
 					print(f'Path:{self.filePathName}')
 					with open('./error.log','a',encoding='utf8') as log:
-						log.write(dt.datetime.now()+'\t'+str(e)+'\n'+self.filePathName+'\n')
+						log.write(f'dt.datetime.now()\t{str(e)}\n{self.filePathName}\n')
 		if self.update:
 			self.mdb.backup(self.db)
 		if self.mem or self.update:
@@ -144,27 +144,34 @@ class DuplicateFiles(object):
 			if (not fileNext is None) and (fileNow[0][2] == fileNext[2]):continue
 			else:
 				for ids in range(1,len(fileNow)):
-					res = os.system(f'mklink /H "{fileNow[ids][0]}.tmp" "{fileNow[0][0]}"')
-					if res:
-						self.Log(f'Create HardLink Failure.\n  Link:"{fileNow[ids][0]}"\n  Terget:"{fileNow[0][0]}"')
-						continue
-					res = os.system(f'move "{fileNow[ids][0]}" "tmp.{fileNow[ids][0]}"')
-					if res:
-						self.Log(f'Rename File Failure:"{fileNow[ids][0]}"')
-						os.system(f'del /F /Q "{fileNow[ids][0]}.tmp"')
-						continue
-					# res = os.system(f'del /F /Q "{fileNow[ids][0]}"')
-					# if res:
-					# 	self.Log(f'Delete File Failure:"{fileNow[ids][0]}"')
-					# 	os.system(f'del /F /Q "{fileNow[ids][0]}.tmp"')
-					# 	continue
-					res = os.system(f'move "{fileNow[ids][0]}.tmp" "{fileNow[ids][0]}"')
-					if res:
-						self.Log(f'Rename File Failure:"{fileNow[ids][0]}.tmp"')
-						os.system(f'del /F /Q "{fileNow[ids][0]}.tmp"')
-						os.system(f'move "tmp.{fileNow[ids][0]}" "{fileNow[ids][0]}"')
-						continue
-					os.system(f'del /F /Q "tmp.{fileNow[ids][0]}" "{fileNow[ids][0]}"')
+					if os.path.isfile(fileNow[ids][0]):
+						res = os.system(f'mklink /H "{fileNow[ids][0]}.tmp" "{fileNow[0][0]}"')
+						if res:
+							self.Log(f'Create HardLink Failure.\n  Link:"{fileNow[ids][0]}.tmp"\n  Terget:"{fileNow[0][0]}"')
+							continue
+						res = os.system(f'move "{fileNow[ids][0]}" "{fileNow[ids][0]}.tmp2"')
+						if res:
+							self.Log(f'Rename File Failure:"{fileNow[ids][0]}" to "{fileNow[ids][0]}.tmp2"')
+							os.system(f'del /F /Q "{fileNow[ids][0]}.tmp"')
+							continue
+						else:
+							print(f"Rename File : '{fileNow[ids][0]}' to '{fileNow[ids][0]}.tmp2'")
+						# res = os.system(f'del /F /Q "{fileNow[ids][0]}"')
+						# if res:
+						# 	self.Log(f'Delete File Failure:"{fileNow[ids][0]}"')
+						# 	os.system(f'del /F /Q "{fileNow[ids][0]}.tmp"')
+						# 	continue
+						res = os.system(f'move "{fileNow[ids][0]}.tmp" "{fileNow[ids][0]}"')
+						if res:
+							self.Log(f'Rename File Failure:"{fileNow[ids][0]}.tmp" to "{fileNow[ids][0]}"')
+							os.system(f'del /F /Q "{fileNow[ids][0]}.tmp"')
+							os.system(f'move "{fileNow[ids][0]}.tmp2" "{fileNow[ids][0]}"')
+							continue
+						else:
+							print(f"Rename File : '{fileNow[ids][0]}.tmp' to '{fileNow[ids][0]}'")
+						os.system(f'del /F /Q "{fileNow[ids][0]}.tmp2"')
+					else:
+						os.system(f'mklink /H "{fileNow[ids][0]}" "{fileNow[0][0]}"')
 				else:
 					fileNow=list()
 		
