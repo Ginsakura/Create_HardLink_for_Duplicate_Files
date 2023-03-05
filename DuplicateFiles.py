@@ -14,7 +14,7 @@ class FileSearch(object):
 		self.filePathName = ''
 		self.fileSize = ''
 		self.fileMD5 = ''
-		self.mem=self.HasDB()
+		self.mem=self.HasTable()
 		self.db = sql.connect('./FileData.db')
 		self.cur = self.db.cursor()
 		self.cur.execute('PRAGMA synchronous = OFF')
@@ -25,7 +25,7 @@ class FileSearch(object):
 			self.db.backup(self.mdb)
 			print('Load SQLite to memory success.')
 
-	def HasDB(self, x = 1):
+	def HasTable(self, x=1):
 		db=sql.connect('./FileData.db')
 		cur = db.cursor()
 		exist = cur.execute(f'select * from sqlite_master where type=\'table\' and name=\'{self.path}\'')
