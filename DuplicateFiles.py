@@ -60,7 +60,7 @@ class FileSearch(object):
 							self.fileMD5 = self.File2md5()
 							if r == 2:self.SQLUpdate()
 							else:self.SQLInsert()
-							print(f'{self.fileMD5}\t{self.fileSize}B')
+							print(f'{dt.datetime.now()}\t{self.fileMD5}\t{self.fileSize}B')
 				except Exception as e:
 					print(f'Something is wrong: {e}')
 					print(f'Path:{self.filePathName}')
@@ -75,9 +75,17 @@ class FileSearch(object):
 	def SQLUpdateAll(self):
 		res = self.mcur.execute(f'select FileSize,FileMD5 from "{self.path}" where FilePath="{self.filePathName}"')
 		ids = res.fetchone()
-		if ids is None:self.mcur.execute(f'insert into `{self.path}` values(?,?,?)', (self.filePathName, self.fileSize, self.fileMD5))
-		elif (self.fileMD5 == ids[1]) and (self.fileSize == ids[0]):pass
-		else:self.mcur.execute(f'update "{self.path}" set FileSize={self.fileSize},FileMD5={self.fileMD5} where FilePath="{self.filePathName}"')
+		if ids is None:
+			self.mcur.execute(f'insert into `{self.path}` values(?,?,?)', (self.filePathName, self.fileSize, self.fileMD5))
+			print(f'{dt.datetime.now()}\t{self.fileMD5}\t{self.fileSize}B')
+		elif (self.fileMD5 == ids[1]) and (self.fileSize == ids[0]):
+			print(f'{dt.datetime.now()}\t{self.fileMD5}\t{self.fileSize}B\tData not change.')
+		else:
+			self.mcur.execute(f'update "{self.path}" set FileSize={self.fileSize},FileMD5={self.fileMD5} where FilePath="{self.filePathName}"')
+			print(f'{dt.datetime.now()}\
+\tNew Hash:{self.fileMD5}\tOld Hash:{ids[1]}\
+\tNew Size:{self.fileSize}B\tOld Size:{ids[0]}\
+Data not change.')
 
 	def SQLCheck(self):
 		if self.mem:
