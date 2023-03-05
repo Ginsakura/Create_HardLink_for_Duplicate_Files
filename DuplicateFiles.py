@@ -153,7 +153,7 @@ if __name__ == '__main__':
 -show-count\t展示数据库中的所有表以及表内条目数')
 		sys.exit()
 	elif sys.argv[-1] == '-show':
-		db = sql.connect('./FileData0.db')
+		db = sql.connect('./FileData.db')
 		cur = db.cursor()
 		res = cur.execute('select * from sqlite_master where type=\'table\'')
 		resNum=0
@@ -162,7 +162,7 @@ if __name__ == '__main__':
 			print(f'{resNum}\t{ids[1]}')
 		sys.exit()
 	elif sys.argv[-1] == '-show-count':
-		db = sql.connect('./FileData0.db')
+		db = sql.connect('./FileData.db')
 		cur = db.cursor()
 		res = cur.execute('select * from sqlite_master where type=\'table\'')
 		resNum=0
