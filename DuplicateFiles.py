@@ -44,11 +44,13 @@ class FileSearch(object):
 		return x
 
 	def TraversePath(self):
+		fileCount=0
 		for filepath,dirnames,filenames in os.walk(self.path):
 			for filename in filenames:
+				fileCount += 1
 				try:
 					self.filePathName = os.path.join(filepath,filename)
-					print(f'{self.filePathName}')
+					print(f'{fileCount}  {self.filePathName}')
 					self.fileSize = os.stat(self.filePathName).st_size
 					if self.update:
 						self.fileMD5 = self.File2md5()
@@ -142,12 +144,27 @@ class DuplicateFiles(object):
 			if (not fileNext is None) and (fileNow[0][2] == fileNext[2]):continue
 			else:
 				for ids in range(1,len(fileNow)):
-					res = os.system(f'del /F /Q "{fileNow[ids][0]}"')
+					res = os.system(f'mklink /H "{fileNow[ids][0]}.tmp" "{fileNow[0][0]}"')
 					if res:
-						self.Log(f'Delete File Failure:"{fileNow[ids][0]}"')
+						self.Log(f'Create HardLink Failure.\n  Link:"{fileNow[ids][0]}"\n  Terget:"{fileNow[0][0]}"')
 						continue
-					res = os.system(f'mklink /H "{fileNow[ids][0]}" "{fileNow[0][0]}"')
-					if res:self.Log(f'Create HardLink Failure.\n  Link:"{fileNow[ids][0]}"\n  Terget:"{fileNow[0][0]}"')
+					res = os.system(f'move "{fileNow[ids][0]}" "tmp.{fileNow[ids][0]}"')
+					if res:
+						self.Log(f'Rename File Failure:"{fileNow[ids][0]}"')
+						os.system(f'del /F /Q "{fileNow[ids][0]}.tmp"')
+						continue
+					# res = os.system(f'del /F /Q "{fileNow[ids][0]}"')
+					# if res:
+					# 	self.Log(f'Delete File Failure:"{fileNow[ids][0]}"')
+					# 	os.system(f'del /F /Q "{fileNow[ids][0]}.tmp"')
+					# 	continue
+					res = os.system(f'move "{fileNow[ids][0]}.tmp" "{fileNow[ids][0]}"')
+					if res:
+						self.Log(f'Rename File Failure:"{fileNow[ids][0]}.tmp"')
+						os.system(f'del /F /Q "{fileNow[ids][0]}.tmp"')
+						os.system(f'move "tmp.{fileNow[ids][0]}" "{fileNow[ids][0]}"')
+						continue
+					os.system(f'del /F /Q "tmp.{fileNow[ids][0]}" "{fileNow[ids][0]}"')
 				else:
 					fileNow=list()
 		
