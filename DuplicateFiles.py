@@ -144,7 +144,33 @@ class DuplicateFiles(object):
 if __name__ == '__main__':
 	# ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
 	if sys.argv[-1] == '-h':
-		print('Memu:\n-h\t\tHelp\n-d\t\t直接根据数据库进行文件去重\n-r\t\t删除表重新建立并去重\n-u\t\t更新表内容并去重')
+		print('Memu:\n \
+-h\t\tHelp\n\
+-d\t\t直接根据数据库进行文件去重\n\
+-r\t\t删除表重新建立并去重\n\
+-u\t\t更新表内容并去重\n\
+-show\t\t展示数据库中的所有表以及表内条目数\n\
+-show-count\t展示数据库中的所有表以及表内条目数')
+		sys.exit()
+	elif sys.argv[-1] == '-show':
+		db = sql.connect('./FileData0.db')
+		cur = db.cursor()
+		res = cur.execute('select * from sqlite_master where type=\'table\'')
+		resNum=0
+		for ids in res:
+			resNum += 1
+			print(f'{resNum}\t{ids[1]}')
+		sys.exit()
+	elif sys.argv[-1] == '-show-count':
+		db = sql.connect('./FileData0.db')
+		cur = db.cursor()
+		res = cur.execute('select * from sqlite_master where type=\'table\'')
+		resNum=0
+		for idx in res:
+			resNum += 1
+			count = cur.execute(f'select count(*) from "{idx[1]}"')
+			print(f'  num  |  path  |  count  ')
+			print(f'{resNum}\t{idx[1]}\t{count.fetchone()[0]}')
 		sys.exit()
 	path = input('Path: ')
 	# path = 'E:/'
