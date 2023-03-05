@@ -68,6 +68,9 @@ class FileSearch(object):
 						log.write(dt.datetime.now()+'\t'+str(e)+'\n'+self.filePathName+'\n')
 		if self.update:
 			self.mdb.backup(self.db)
+		if self.mem or self.update:
+			self.mdb.close()
+		self.db.close()
 
 	def SQLUpdateAll(self):
 		res = self.mcur.execute(f'select FileSize,FileMD5 from "{self.path}" where FilePath="{self.filePathName}"')
@@ -151,6 +154,7 @@ if __name__ == '__main__':
 -u\t\t更新表内容并去重\n\
 -show\t\t展示数据库中的所有表以及表内条目数\n\
 -show-count\t展示数据库中的所有表以及表内条目数')
+		os.system("pause")
 		sys.exit()
 	elif sys.argv[-1] == '-show':
 		db = sql.connect('./FileData.db')
@@ -160,17 +164,22 @@ if __name__ == '__main__':
 		for ids in res:
 			resNum += 1
 			print(f'{resNum}\t{ids[1]}')
+		db.close()
+		os.system("pause")
 		sys.exit()
 	elif sys.argv[-1] == '-show-count':
 		db = sql.connect('./FileData.db')
 		cur = db.cursor()
 		res = cur.execute('select * from sqlite_master where type=\'table\'')
+		res = res.fetchall()
 		resNum=0
+		print(f'  num  |  path  |  count  ')
 		for idx in res:
 			resNum += 1
 			count = cur.execute(f'select count(*) from "{idx[1]}"')
-			print(f'  num  |  path  |  count  ')
 			print(f'{resNum}\t{idx[1]}\t{count.fetchone()[0]}')
+		db.close()
+		os.system("pause")
 		sys.exit()
 	path = input('Path: ')
 	# path = 'E:/'
@@ -192,3 +201,4 @@ if __name__ == '__main__':
 		FileSearch(path).TraversePath()
 		time.sleep(0.1)
 		DuplicateFiles(path).Duplicate()
+	os.system("pause")
