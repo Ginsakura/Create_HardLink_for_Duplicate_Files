@@ -119,9 +119,10 @@ Data not change.')
 
 class DuplicateFiles(object):
 	"""docstring for DuplicateFiles"""
-	def __init__(self, path,):
+	def __init__(self, path,unsafe=0):
 		super(DuplicateFiles, self).__init__()
 		self.path = path
+		self.unsafe = unsafe
 		self.db = sql.connect('./FileData.db')
 		self.cur = self.db.cursor()
 
@@ -145,31 +146,33 @@ class DuplicateFiles(object):
 			else:
 				for ids in range(1,len(fileNow)):
 					if os.path.isfile(fileNow[ids][0]):
-						res = os.system(f'mklink /H "{fileNow[ids][0]}.tmp" "{fileNow[0][0]}"')
-						if res:
-							self.Log(f'Create HardLink Failure.\n  Link:"{fileNow[ids][0]}.tmp"\n  Terget:"{fileNow[0][0]}"')
-							continue
-						res = os.system(f'move "{fileNow[ids][0]}" "{fileNow[ids][0]}.tmp2"')
-						if res:
-							self.Log(f'Rename File Failure:"{fileNow[ids][0]}" to "{fileNow[ids][0]}.tmp2"')
-							os.system(f'del /F /Q "{fileNow[ids][0]}.tmp"')
-							continue
+						if self.unsafe:
+							res = os.system(f'del /F /Q "{fileNow[ids][0]}"')
+							if res:
+								self.Log(f'Delete File Failure:"{fileNow[ids][0]}"')
+								continue
+							os.system(f'mklink /H "{fileNow[ids][0]}" "{fileNow[0][0]}"')
 						else:
-							print(f"Rename File : '{fileNow[ids][0]}' to '{fileNow[ids][0]}.tmp2'")
-						# res = os.system(f'del /F /Q "{fileNow[ids][0]}"')
-						# if res:
-						# 	self.Log(f'Delete File Failure:"{fileNow[ids][0]}"')
-						# 	os.system(f'del /F /Q "{fileNow[ids][0]}.tmp"')
-						# 	continue
-						res = os.system(f'move "{fileNow[ids][0]}.tmp" "{fileNow[ids][0]}"')
-						if res:
-							self.Log(f'Rename File Failure:"{fileNow[ids][0]}.tmp" to "{fileNow[ids][0]}"')
-							os.system(f'del /F /Q "{fileNow[ids][0]}.tmp"')
-							os.system(f'move "{fileNow[ids][0]}.tmp2" "{fileNow[ids][0]}"')
-							continue
-						else:
-							print(f"Rename File : '{fileNow[ids][0]}.tmp' to '{fileNow[ids][0]}'")
-						os.system(f'del /F /Q "{fileNow[ids][0]}.tmp2"')
+							res = os.system(f'mklink /H "{fileNow[ids][0]}.tmp" "{fileNow[0][0]}"')
+							if res:
+								self.Log(f'Create HardLink Failure.\n  Link:"{fileNow[ids][0]}.tmp"\n  Terget:"{fileNow[0][0]}"')
+								continue
+							res = os.system(f'move "{fileNow[ids][0]}" "{fileNow[ids][0]}.tmp2"')
+							if res:
+								self.Log(f'Rename File Failure:"{fileNow[ids][0]}" to "{fileNow[ids][0]}.tmp2"')
+								os.system(f'del /F /Q "{fileNow[ids][0]}.tmp"')
+								continue
+							else:
+								print(f"Rename File : '{fileNow[ids][0]}' to '{fileNow[ids][0]}.tmp2'")
+							res = os.system(f'move "{fileNow[ids][0]}.tmp" "{fileNow[ids][0]}"')
+							if res:
+								self.Log(f'Rename File Failure:"{fileNow[ids][0]}.tmp" to "{fileNow[ids][0]}"')
+								os.system(f'del /F /Q "{fileNow[ids][0]}.tmp"')
+								os.system(f'move "{fileNow[ids][0]}.tmp2" "{fileNow[ids][0]}"')
+								continue
+							else:
+								print(f"Rename File : '{fileNow[ids][0]}.tmp' to '{fileNow[ids][0]}'")
+							os.system(f'del /F /Q "{fileNow[ids][0]}.tmp2"')
 					else:
 						os.system(f'mklink /H "{fileNow[ids][0]}" "{fileNow[0][0]}"')
 				else:
@@ -184,6 +187,7 @@ if __name__ == '__main__':
 -d\t\t直接根据数据库进行文件去重\n\
 -r\t\t删除表重新建立并去重\n\
 -u\t\t更新表内容并去重\n\
+-unsafe\t\t在-d、-r、-u模式下，使用-unsafe参数可以切换去重操作为不安全模式，至于有没有更快……谁知道呢~)\
 -show\t\t展示数据库中的所有表以及表内条目数\n\
 -show-count\t展示数据库中的所有表以及表内条目数')
 		os.system("pause")
@@ -215,20 +219,23 @@ if __name__ == '__main__':
 		sys.exit()
 	path = input('Path: ')
 	# path = 'E:/'
+	argu = sys.argv[1:]
 	if path.strip() is None:sys.exit()
-	if sys.argv[-1] == '-d':
-		DuplicateFiles(path).Duplicate()
-	elif sys.argv[-1] == '-r':
+	if '-unsafe' in argu:unsafe=1
+	else:unsafe=0
+	if '-d' in argu:
+		DuplicateFiles(path,unsafe).Duplicate()
+	elif '-r' in argu:
 		db = sql.connect('./FileData.db')
 		cur = db.cursor()
 		cur.execute(f'drop table if exists "{path}"')
 		FileSearch(path).TraversePath()
 		time.sleep(0.1)
-		DuplicateFiles(path).Duplicate()
-	elif sys.argv[-1] == '-u':
+		DuplicateFiles(path,unsafe).Duplicate()
+	elif '-u' in argu:
 		FileSearch(path,update=True).TraversePath()
 		time.sleep(0.1)
-		DuplicateFiles(path).Duplicate()
+		DuplicateFiles(path,unsafe).Duplicate()
 	else:
 		FileSearch(path).TraversePath()
 		time.sleep(0.1)
