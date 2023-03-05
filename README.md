@@ -5,7 +5,7 @@ Create Hard Links for duplicate files
 ### 用法
 - `Python.exe ./DuplicateFiles.py [-operation]`
 - `Path:`输入你想查询/去除重复文件的目录
-- `-operation`:`-d`,`-u`,`-h`,`-r`,`-show`,`-show-count`
+#### `-operation`可选项: `-d`,`-u`,`-h`,`-r`,`-show`,`-show-count`
 
 ### 功能
 1. ## 本脚本对大小写敏感,对`\`,`/`也敏感
