@@ -128,7 +128,8 @@ class DuplicateFiles(object):
 
 	def Log(self,s):
 		with open('./error.log','a',encoding='utf8') as log:
-			log.write(f'{dt.datetime.now()}\t{s}\n')
+			log.write(f'{dt.datetime.now()}\t')
+			log.write(f'\t{s}\n')
 
 	def Duplicate(self):
 		dbres = self.cur.execute(f'''select * from "{self.path}" where ( 
@@ -138,6 +139,7 @@ class DuplicateFiles(object):
 		fileNow=list()
 		fileNext=dbres.fetchone() #[FilePath,FileSize,FileMD5]
 		while not (fileNext is None):
+			if fileNext[1] == 0:continue
 			fileNow.append(fileNext)
 			fileNext = dbres.fetchone()
 			# print(fileNow)
