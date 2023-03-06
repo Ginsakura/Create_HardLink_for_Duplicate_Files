@@ -7,6 +7,13 @@ Create Hard Links for duplicate files
 - `Path:`输入你想查询/去除重复文件的目录
 #### `-operation`可选项: `-d`,`-u`,`-h`,`-r`,`-show`,`-show-count`,`-unsafe`
 
+- `Python.exe ./Fix0B.py`
+- 修复把所有0字节文件当成同一个文件的bug，
+
+运行Fix0B.py将会还原所有0字节文件
+
+已在DuplicateFiles.py中添加排除0字节文件的语句
+
 ### 功能
 1. ## 本脚本对大小写敏感,对`\`,`/`也敏感
     - ## `E:/`,`E:\`,`e:\`,`e:/`是不同的目录
