@@ -139,7 +139,9 @@ class DuplicateFiles(object):
 		fileNow=list()
 		fileNext=dbres.fetchone() #[FilePath,FileSize,FileMD5]
 		while not (fileNext is None):
-			if fileNext[1] == 0:continue
+			if fileNext[1] == 0:
+				fileNext = dbres.fetchone()
+				continue
 			fileNow.append(fileNext)
 			fileNext = dbres.fetchone()
 			# print(fileNow)
